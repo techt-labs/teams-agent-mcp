@@ -1,0 +1,24 @@
+# Standalone MCP layer dependencies.
+#
+# Note what is absent: no botbuilder, no Microsoft Teams SDK. This layer
+# never speaks to Teams directly — it calls the connector's HTTP API and
+# talks to the agent platform. That narrower surface is why it is a
+# separate service. Versions pinned to what this repository is tested
+# against.
+
+# Web service (inbound webhook; the MCP tool surface mounts here too)
+fastapi==0.135.2
+uvicorn[standard]==0.42.0
+
+# Model Context Protocol SDK — the real MCP server (mcp_server.py) that
+# consumers connect to and auto-discover tools from.
+mcp==2.0.0
+
+# Calls to the connector API and to the agent platform's REST API
+httpx==0.28.1
+
+# PostgreSQL for the session <-> thread table. SQLite (the alternative)
+# uses the standard library and needs nothing here; drop these two lines
+# if you deploy with MCP_DATABASE_URL=sqlite:///…
+psycopg==3.3.3
+psycopg-pool==3.3.0

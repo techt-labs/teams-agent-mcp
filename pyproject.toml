@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "teams-agent-mcp"
+version = "0.1.0"
+description = "MCP server bridging agent sessions to Microsoft Teams: ask_human tools + session-thread correlation."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+dynamic = ["dependencies"]
+
+[tool.setuptools]
+packages = ["mcp_layer"]
+
+[tool.setuptools.package-data]
+mcp_layer = ["schema.sql"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
