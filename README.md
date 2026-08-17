@@ -1,5 +1,21 @@
 # MCP Layer
 
+> **This repo is one of two, and it does not work alone.** The full
+> bridge that lets an agent ask a human in Teams and get the answer back:
+>
+> ```
+> ┌───────────────────┐   ┌─────────────────┐   ┌───────────────┐   ┌──────────────┐
+> │ Microsoft 365      │◄─►│  connector      │◄─►│  MCP server   │◄─►│  your agent  │
+> │ Teams + Azure Bot  │   │ teams-connector │   │  ★ THIS REPO  │   │ SaaS/in-house│
+> └───────────────────┘   └─────────────────┘   └───────────────┘   └──────────────┘
+> ```
+>
+> **Prerequisite:** a running
+> **[teams-connector](https://github.com/techt-labs/teams-connector)** —
+> that companion repo is the only thing that talks to Microsoft; this
+> service is its client. Deploy it **first**, then this one, then point
+> your agent here. Order and wiring: [`GETTING_STARTED.md`](GETTING_STARTED.md).
+
 The agent-facing half of the Teams bridge. It holds one fact the
 connector deliberately does not: **which agent session a Teams thread
 belongs to.**
