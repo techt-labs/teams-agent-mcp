@@ -63,6 +63,45 @@ surface 3 requires the connector's `CONNECTOR_INBOUND_TOKEN`.
 That is the complete surface — nothing else listens, nothing else is
 called.
 
+## Using both repos: how this connects to teams-connector
+
+The entire integration between this service and
+[teams-connector](https://github.com/techt-labs/teams-connector) is
+**two HTTP links and two shared tokens** — there is no other coupling
+(no shared database, no shared code):
+
+```
+            OUTBOUND (the agent asks)
+   this service ──────────────────────────────► teams-connector
+     calls: GET /api/connector/channels ·  GET /members
+            POST /threads               ·  POST /say
+     auth:  Authorization: Bearer CONNECTOR_API_TOKEN
+
+            INBOUND (a human answers)
+   teams-connector ───────────────────────────► this service
+     calls: POST /teams-inbound  (its CONNECTOR_INBOUND_URL points here)
+     body:  {conversation_id, text, speaker, speaker_email, source}
+     auth:  Authorization: Bearer MCP_INBOUND_TOKEN
+```
+
+The four configuration lines that make it work — two on each side:
+
+| Where | Setting | Must be |
+|---|---|---|
+| **this service** | `CONNECTOR_BASE_URL` | the connector's base URL |
+| **this service** | `CONNECTOR_API_TOKEN` | **identical** to the connector's `CONNECTOR_API_TOKEN` |
+| **the connector** | `CONNECTOR_INBOUND_URL` | `https://<this-host>/teams-inbound` |
+| **the connector** | `CONNECTOR_INBOUND_TOKEN` | **identical** to this service's `MCP_INBOUND_TOKEN` |
+
+Deploy order: connector first, then this service, then go back and set
+the connector's `CONNECTOR_INBOUND_URL` — the loop is closed at that
+moment. How the correlation works across the pair: `ask_human` receives
+the new thread's id from `POST /threads` and stores it against the
+calling session; the human's reply arrives at `/teams-inbound` carrying
+that same thread id (Teams stamps it on every in-thread reply), and one
+table lookup routes the answer home. If either token pair mismatches,
+the symptom is a 401 in the callee's log.
+
 ## What it deliberately does not do
 
 - **Talk to Teams.** It never imports the Teams SDK. It calls the
