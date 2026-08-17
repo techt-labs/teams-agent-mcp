@@ -29,9 +29,16 @@ belongs to.**
 
 - Exposes tools an agent calls: `list_channels`, `list_channel_members`,
   `ask_human`.
-- Stores the `session_id ↔ thread_id` mapping (one table).
+- Stores the `session_id ↔ thread_id` mapping — one table, `mcp_sessions`;
+  the full annotated DDL, column meanings and sizing notes are in
+  [`DATABASE.md`](DATABASE.md), and the executable copy the service
+  applies at startup is [`mcp_layer/schema.sql`](mcp_layer/schema.sql).
 - Receives each human reply from the connector and delivers it to the
   session that asked.
+
+**Documentation map:** deploy step-by-step →
+[`GETTING_STARTED.md`](GETTING_STARTED.md) · the database →
+[`DATABASE.md`](DATABASE.md) · architecture & APIs → this file.
 
 ## What it deliberately does not do
 
@@ -77,23 +84,27 @@ readers and reviewers:
 | `core.py` | The tool logic: `list_channels`, `list_channel_members`, `ask_human`, and reply routing. |
 | `connector_client.py` | HTTP client for the connector's API — this layer's only way to Teams. |
 | `consumer.py` | Delivers an answer to the attached agent (`HttpAgent` callback, an example SaaS sessions-API adapter, or a recording mock). |
-| `store.py` | The `session ↔ thread` table (Postgres or SQLite). |
+| `store.py` | The `session ↔ thread` table (Postgres or SQLite); DDL in `schema.sql`, explained in `DATABASE.md`. |
 | `settings.py` | Reads all configuration from the environment. **Where config comes in.** |
 | `.env.example` | **The config file you copy to `.env` and fill in.** |
 | `Dockerfile` | Builds the container image. |
 
 ## Running
 
+Deployment step-by-step (database options, config table, attaching your
+agent platform, verification) lives in
+[`GETTING_STARTED.md`](GETTING_STARTED.md). The short form:
+
 ```bash
-pip install -r requirements.txt
-uvicorn mcp_layer.app:app --host 0.0.0.0 --port 8100    # from server/
+cp .env.example .env      # fill in — see GETTING_STARTED.md
+docker compose up --build # service + PostgreSQL, one command
 ```
 
-or as a container:
+or without Docker (Python 3.11+):
 
 ```bash
-docker build -f mcp_layer/Dockerfile -t ea-mcp-layer server/
-docker run -p 8100:8100 --env-file mcp_layer/.env ea-mcp-layer
+pip install -r requirements.txt
+uvicorn mcp_layer.app:app --host 0.0.0.0 --port 8100
 ```
 
 Point the connector's `CONNECTOR_INBOUND_URL` at
@@ -101,11 +112,13 @@ Point the connector's `CONNECTOR_INBOUND_URL` at
 
 ## Status
 
-Complete and tested (`tests/test_phase19_mcp_layer_smoke.py`, no
-Teams/LLM/network — a mock consumer and a faked connector prove the full
-loop): the tool logic, the reply round-trip, the REST tool port, and the
-**MCP-protocol surface** (Streamable HTTP at `/mcp-server/mcp`,
-bearer-gated, tools auto-discovered via `tools/list`).
+Complete and tested in the source monorepo's smoke suite (a mock
+consumer and a faked connector prove the full ask → reply → session
+loop; no Teams/LLM/network needed): the tool logic, the reply
+round-trip, the REST tool port, and the **MCP-protocol surface**
+(Streamable HTTP at `/mcp-server/mcp`, bearer-gated, tools
+auto-discovered via `tools/list`). The bidirectional flow has also been
+verified live against a real tenant. Per-repo CI is on the roadmap.
 
 One piece is deliberately an example rather than a certainty: the SaaS
 sessions-API adapter in `consumer.py` implements one vendor's endpoint
