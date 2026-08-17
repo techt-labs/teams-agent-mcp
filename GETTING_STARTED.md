@@ -15,7 +15,7 @@ session that asked.
 ## Step 1 — Prerequisites
 
 - A running
-  **[teams-connector](https://github.com/techt-labs/teams-connector)**
+  **[teams-connector](https://github.com/techtdev-labs/teams-connector)**
   (the companion repo — the only component that talks to Microsoft; it
   has its own `GETTING_STARTED.md`). **If it is not deployed yet, stop
   and do that first.** From it you need two values: its base URL, and

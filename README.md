@@ -11,7 +11,7 @@
 > ```
 >
 > **Prerequisite:** a running
-> **[teams-connector](https://github.com/techt-labs/teams-connector)** —
+> **[teams-connector](https://github.com/techtdev-labs/teams-connector)** —
 > that companion repo is the only thing that talks to Microsoft; this
 > service is its client. Deploy it **first**, then this one, then point
 > your agent here. Order and wiring: [`GETTING_STARTED.md`](GETTING_STARTED.md).
@@ -57,7 +57,7 @@ surface 3 requires the connector's `CONNECTOR_INBOUND_TOKEN`.
 
 | Direction | Where | Which endpoints | When |
 |---|---|---|---|
-| → the [teams-connector](https://github.com/techt-labs/teams-connector) | `CONNECTOR_BASE_URL` | `GET /api/connector/channels`, `GET /members`, `POST /threads`, `POST /say` | executing the tools |
+| → the [teams-connector](https://github.com/techtdev-labs/teams-connector) | `CONNECTOR_BASE_URL` | `GET /api/connector/channels`, `GET /members`, `POST /threads`, `POST /say` | executing the tools |
 | → your consumer | `AGENT_CALLBACK_URL` (one `POST` of `{session_id, text}`) **or** the SaaS sessions API | — | delivering each human answer to the session that asked |
 
 That is the complete surface — nothing else listens, nothing else is
@@ -66,7 +66,7 @@ called.
 ## Using both repos: how this connects to teams-connector
 
 The entire integration between this service and
-[teams-connector](https://github.com/techt-labs/teams-connector) is
+[teams-connector](https://github.com/techtdev-labs/teams-connector) is
 **two HTTP links and two shared tokens** — there is no other coupling
 (no shared database, no shared code):
 
