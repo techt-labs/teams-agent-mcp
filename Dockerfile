@@ -1,11 +1,11 @@
 # Standalone MCP layer image.
 #
-# Build context is the `server/` directory, because the package
-# (`mcp_layer/`) imports itself absolutely. Build from there so it
-# resolves:
+# Build from the directory that CONTAINS the `mcp_layer/` package (the
+# repo root in the standalone repo; `server/` in the source monorepo) —
+# the package imports itself absolutely:
 #
-#     docker build -t ea-mcp-layer .
-#     docker run -p 8100:8100 --env-file mcp_layer/.env ea-mcp-layer
+#     docker build -t teams-agent-mcp .
+#     docker run -p 8100:8100 --env-file .env teams-agent-mcp
 #
 # Deploys unchanged on Azure App Service or Container Apps alongside the
 # connector — two small services, one per concern. This one needs no

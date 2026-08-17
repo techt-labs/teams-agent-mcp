@@ -49,6 +49,7 @@ cp .env.example .env      # then edit .env
 | `MCP_DATABASE_URL` | the Step-2 connection string |
 | `MCP_TOOLS_TOKEN` | generate: `python3 -c "import secrets; print(secrets.token_urlsafe(32))"` — your agent presents this to call the tools |
 | `MCP_INBOUND_TOKEN` | must equal the connector's `CONNECTOR_INBOUND_TOKEN` (the connector presents it when forwarding replies here) |
+| `POSTGRES_PASSWORD` | choose a strong password — **required** by `docker compose` (it runs the database container with it) |
 | consumer settings | ONE of the Step-5 shapes below |
 
 And on the **connector's** side, set its `CONNECTOR_INBOUND_URL` to
@@ -62,16 +63,21 @@ And on the **connector's** side, set its `CONNECTOR_INBOUND_URL` to
 docker compose up --build
 ```
 
-**Or directly:**
+**Or directly:** the service reads plain environment variables (it
+does not load `.env` by itself — Docker does that), so export them
+first:
 
 ```bash
 pip install -r requirements.txt
+set -a; source .env; set +a          # export everything in .env
 uvicorn mcp_layer.app:app --host 0.0.0.0 --port 8100
 ```
 
-On Azure: App Service (Web App for Containers) or Container Apps. This
-service does **not** need to face the public internet — only the
-connector and your agent platform need to reach it.
+On Azure: App Service (Web App for Containers) or Container Apps.
+Reachability: the connector and your agent platform must reach it. If
+your agent is a SaaS platform whose MCP client runs from the vendor's
+infrastructure, that means a public HTTPS URL (the tool port is
+bearer-gated); an in-house agent can keep it on the internal network.
 
 ## Step 5 — Attach your agent platform
 
@@ -101,6 +107,9 @@ by the platform. An in-house tool simply passes its own id.
 | an **in-house tool** | `AGENT_CALLBACK_URL` (+ optional `AGENT_CALLBACK_TOKEN`) | this server POSTs `{session_id, text}` to your endpoint; your tool resumes that session |
 | a **SaaS platform with a sessions API** | `DEVIN_BASE_URL`, `DEVIN_ORG`, `DEVIN_API_TOKEN` (the built-in example adapter; see `mcp_layer/consumer.py` to add another vendor — one method) | this server posts the answer into the platform session, waking it if asleep |
 | nothing yet (testing) | leave both unset | the built-in mock records deliveries in the log |
+
+If both shapes are set, the sessions-API shape wins — clear the
+`DEVIN_*` values when switching to a callback.
 
 ## Step 6 — Verify the full loop
 

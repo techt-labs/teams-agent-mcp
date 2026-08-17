@@ -52,5 +52,7 @@ async def ask_human(
     return await core.ask_human(session_id, channel, recipients, question)
 
 
-# ASGI app for the Streamable HTTP transport, mounted by app.py at /mcp.
+# ASGI app for the Streamable HTTP transport. app.py mounts it (behind
+# a bearer gate) at /mcp-server, so the full client URL is
+# /mcp-server/mcp.
 mcp_app = mcp_server.streamable_http_app(streamable_http_path="/mcp")

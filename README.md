@@ -40,6 +40,29 @@ belongs to.**
 [`GETTING_STARTED.md`](GETTING_STARTED.md) · the database →
 [`DATABASE.md`](DATABASE.md) · architecture & APIs → this file.
 
+## Every API, at a glance
+
+**This service EXPOSES 3 surfaces** (5 HTTP endpoints total):
+
+| # | Endpoint | Who calls it | What it does |
+|---|---|---|---|
+| 1 | `/mcp-server/mcp` | **your agent** (MCP protocol, Streamable HTTP) | connect once, auto-discover and call the 3 tools |
+| 2 | `GET /tools/channels` · `GET /tools/members` · `POST /tools/ask_human` | **your agent** (plain REST — same 3 tools, for anything that cannot speak MCP) | list channels · list people · post a question |
+| 3 | `POST /teams-inbound` | **the connector** | every human reply arrives here and is routed to its session |
+
+Surfaces 1–2 require `Authorization: Bearer <MCP_TOOLS_TOKEN>`;
+surface 3 requires the connector's `CONNECTOR_INBOUND_TOKEN`.
+
+**This service CALLS 2 things:**
+
+| Direction | Where | Which endpoints | When |
+|---|---|---|---|
+| → the [teams-connector](https://github.com/techt-labs/teams-connector) | `CONNECTOR_BASE_URL` | `GET /api/connector/channels`, `GET /members`, `POST /threads`, `POST /say` | executing the tools |
+| → your consumer | `AGENT_CALLBACK_URL` (one `POST` of `{session_id, text}`) **or** the SaaS sessions API | — | delivering each human answer to the session that asked |
+
+That is the complete surface — nothing else listens, nothing else is
+called.
+
 ## What it deliberately does not do
 
 - **Talk to Teams.** It never imports the Teams SDK. It calls the
